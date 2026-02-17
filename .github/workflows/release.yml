@@ -39,6 +39,22 @@ jobs:
       - name: 安装依赖
         run: pnpm install
 
+      - name: 生成更新日志
+        id: changelog
+        run: |
+          echo "## 更新内容" > CHANGELOG.txt
+          echo "" >> CHANGELOG.txt
+          git log $(git describe --tags --abbrev=0 HEAD^)..HEAD --pretty=format:"- %s (%h)" >> CHANGELOG.txt
+          echo "" >> CHANGELOG.txt
+          echo "" >> CHANGELOG.txt
+          echo "## 安装说明" >> CHANGELOG.txt
+          echo "" >> CHANGELOG.txt
+          echo "- Windows 用户：下载 .exe 安装包" >> CHANGELOG.txt
+          echo "- 首次安装请下载完整安装包" >> CHANGELOG.txt
+          echo "- 已安装用户可通过应用内\"检查更新\"功能自动更新" >> CHANGELOG.txt
+          cat CHANGELOG.txt
+        shell: bash
+
       - name: 构建并发布到 GitHub Releases
         uses: tauri-apps/tauri-action@v0
         env:
@@ -47,6 +63,9 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: '终端脚本管理器 ${{ github.ref_name }}'
-          releaseBody: '查看更新日志了解此版本的变更内容。'
+          releaseBody: |
+            $(cat CHANGELOG.txt)
           releaseDraft: false
           prerelease: false
+          includeRelease: true
+          includeUpdaterJson: true
