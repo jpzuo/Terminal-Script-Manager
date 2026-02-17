@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { Command } from "./types/command";
 import { commandStore } from "./store/commands";
+import { Sidebar } from "./components/Sidebar";
+import { CommandList } from "./components/CommandList";
+import { CommandModal } from "./components/CommandModal";
 import "./App.css";
 
 function App() {
   const [commands, setCommands] = useState<Command[]>([]);
   const [search, setSearch] = useState("");
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: "", command: "", tags: "" });
@@ -19,11 +23,30 @@ function App() {
     setCommands(data);
   };
 
-  const filteredCommands = commands.filter(
-    (cmd) =>
-      cmd.name.toLowerCase().includes(search.toLowerCase()) ||
-      cmd.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()))
-  );
+  // 获取所有唯一标签
+  const allTags = Array.from(
+    new Set(commands.flatMap((cmd) => cmd.tags))
+  ).sort();
+
+  // 筛选命令：先按标签筛选，再按搜索词筛选
+  const filteredCommands = commands.filter((cmd) => {
+    // 标签筛选
+    if (selectedTag && !cmd.tags.includes(selectedTag)) {
+      return false;
+    }
+
+    // 搜索筛选
+    if (search) {
+      const searchLower = search.toLowerCase();
+      return (
+        cmd.name.toLowerCase().includes(searchLower) ||
+        cmd.command.toLowerCase().includes(searchLower) ||
+        cmd.tags.some((tag) => tag.toLowerCase().includes(searchLower))
+      );
+    }
+
+    return true;
+  });
 
   const handleAdd = () => {
     setFormData({ name: "", command: "", tags: "" });
@@ -32,113 +55,109 @@ function App() {
   };
 
   const handleEdit = (cmd: Command) => {
-    setFormData({ name: cmd.name, command: cmd.command, tags: cmd.tags.join(", ") });
+    setFormData({
+      name: cmd.name,
+      command: cmd.command,
+      tags: cmd.tags.join(", "),
+    });
     setEditingId(cmd.id);
     setShowModal(true);
   };
 
   const handleSave = async () => {
-    const tags = formData.tags.split(",").map((t) => t.trim()).filter(Boolean);
-    if (editingId) {
-      await commandStore.update(editingId, { ...formData, tags });
-    } else {
-      await commandStore.add({ ...formData, tags });
+    if (!formData.name.trim() || !formData.command.trim()) {
+      alert("命令名称和命令内容不能为空");
+      return;
     }
-    setShowModal(false);
-    loadCommands();
+
+    const tags = formData.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    try {
+      if (editingId) {
+        await commandStore.update(editingId, { ...formData, tags });
+      } else {
+        await commandStore.add({ ...formData, tags });
+      }
+      setShowModal(false);
+      loadCommands();
+    } catch (error) {
+      alert(`保存失败: ${error}`);
+    }
   };
 
   const handleDelete = async (id: string) => {
-    await commandStore.delete(id);
-    loadCommands();
+    if (confirm("确定要删除这个命令吗？")) {
+      try {
+        await commandStore.delete(id);
+        loadCommands();
+      } catch (error) {
+        alert(`删除失败: ${error}`);
+      }
+    }
   };
 
-  const handleRun = async (cmd: string) => {
-    await commandStore.execute(cmd);
+  const handleRun = async (cmd: Command) => {
+    try {
+      const result = await commandStore.execute(cmd.command);
+      if (!result.success) {
+        alert(`执行失败: ${result.message}`);
+      }
+    } catch (error) {
+      alert(`执行失败: ${error}`);
+    }
+  };
+
+  // 复制命令功能
+  const handleCopy = async (cmd: Command) => {
+    try {
+      const newCommand = {
+        name: `${cmd.name} (副本)`,
+        command: cmd.command,
+        tags: cmd.tags,
+      };
+      await commandStore.add(newCommand);
+      loadCommands();
+    } catch (error) {
+      alert(`复制失败: ${error}`);
+    }
+  };
+
+  const handleFormChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
-    <div className="app">
-      <div className="header">
-        <input
-          className="search-input"
-          placeholder="搜索命令或标签..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+    <div className="app-container">
+      <Sidebar
+        search={search}
+        onSearchChange={setSearch}
+        onAddClick={handleAdd}
+        tags={allTags}
+        selectedTag={selectedTag}
+        onTagSelect={setSelectedTag}
+      />
+
+      <main className="main-content">
+        <CommandList
+          commands={filteredCommands}
+          onRun={handleRun}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onCopy={handleCopy}
         />
-        <button className="add-btn" onClick={handleAdd}>
-          添加命令
-        </button>
-      </div>
+      </main>
 
-      <div className="commands-grid">
-        {filteredCommands.map((cmd) => (
-          <div key={cmd.id} className="command-card">
-            <div className="command-name">{cmd.name}</div>
-            <div className="command-text">{cmd.command}</div>
-            {cmd.tags.length > 0 && (
-              <div className="command-tags">
-                {cmd.tags.map((tag) => (
-                  <span key={tag} className="tag">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="command-actions">
-              <button className="btn btn-run" onClick={() => handleRun(cmd.command)}>
-                运行
-              </button>
-              <button className="btn btn-edit" onClick={() => handleEdit(cmd)}>
-                编辑
-              </button>
-              <button className="btn btn-delete" onClick={() => handleDelete(cmd.id)}>
-                删除
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {showModal && (
-        <div className="modal" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">{editingId ? "编辑命令" : "添加命令"}</div>
-            <div className="form-group">
-              <label className="form-label">命令名称</label>
-              <input
-                className="form-input"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">命令内容</label>
-              <textarea
-                className="form-textarea"
-                value={formData.command}
-                onChange={(e) => setFormData({ ...formData, command: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">标签（逗号分隔）</label>
-              <input
-                className="form-input"
-                value={formData.tags}
-                onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-              />
-            </div>
-            <div className="modal-actions">
-              <button className="btn btn-cancel" onClick={() => setShowModal(false)}>
-                取消
-              </button>
-              <button className="btn add-btn" onClick={handleSave}>
-                保存
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CommandModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSave={handleSave}
+        formData={formData}
+        onFormChange={handleFormChange}
+        isEditing={!!editingId}
+      />
     </div>
   );
 }

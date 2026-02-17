@@ -12,11 +12,13 @@ impl CommandValidator {
     fn new() -> Self {
         Self {
             dangerous_patterns: vec![
-                // 修复：正确转义方括号
-                Regex::new(r"[;&|`$(){}\[\]<>]").unwrap(),
-                Regex::new(r"rm\s+-rf").unwrap(),
-                Regex::new(r"sudo").unwrap(),
-                Regex::new(r"eval").unwrap(),
+                // 只阻止真正危险的模式，允许常用的命令连接符
+                Regex::new(r"`").unwrap(),           // 反引号（命令替换）
+                Regex::new(r"\$\(").unwrap(),        // 命令替换 $()
+                Regex::new(r"[<>]").unwrap(),        // 重定向符号
+                Regex::new(r"rm\s+-rf").unwrap(),    // 危险的删除命令
+                Regex::new(r"sudo").unwrap(),        // sudo 命令
+                Regex::new(r"eval").unwrap(),        // eval 命令
             ],
         }
     }
@@ -48,7 +50,8 @@ impl CommandValidator {
             match ch {
                 '"' => result.push_str("\\\""),
                 '\'' => result.push_str("\\'"),
-                '\n' | '\r' => result.push(' '),
+                '\n' => result.push('\n'),  // 保留换行符，用于多行命令
+                '\r' => {},  // 忽略回车符，统一使用 \n
                 _ => result.push(ch),
             }
         }
