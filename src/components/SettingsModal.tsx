@@ -8,8 +8,9 @@
  */
 
 import React, { useRef } from 'react';
-import { X, Download, Upload, Moon, Sun } from 'lucide-react';
+import { X, Download, Upload, Moon, Sun, RefreshCw } from 'lucide-react';
 import { Theme } from '../store/theme';
+import { checkForUpdates } from '../utils/updater';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -38,6 +39,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       onImport(file);
       // 重置 input，允许重复选择同一文件
       e.target.value = '';
+    }
+  };
+
+  /**
+   * 处理检查更新
+   */
+  const handleCheckUpdate = async () => {
+    try {
+      await checkForUpdates();
+    } catch (error) {
+      alert(`检查更新失败: ${error}`);
     }
   };
 
@@ -106,6 +118,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
               />
+            </div>
+          </div>
+
+          <div className="settings-section">
+            <h3 className="settings-section-title">关于</h3>
+
+            <div className="settings-item">
+              <div className="settings-item-info">
+                <div className="settings-item-title">检查更新</div>
+                <div className="settings-item-desc">
+                  检查是否有新版本可用
+                </div>
+              </div>
+              <button className="btn btn-secondary" onClick={handleCheckUpdate}>
+                <RefreshCw size={18} />
+                <span>检查更新</span>
+              </button>
             </div>
           </div>
         </div>
