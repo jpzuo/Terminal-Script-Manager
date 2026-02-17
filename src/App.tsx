@@ -66,11 +66,7 @@ function App() {
     // 应用到 Tauri 窗口标题栏
     try {
       const appWindow = getCurrentWindow();
-      // Tauri v2 的 setTheme 接受 'light' | 'dark' | null
-      const themeValue = theme === 'light' ? 'light' : 'dark';
-      console.log('正在设置窗口主题:', themeValue);
-      await appWindow.setTheme(themeValue);
-      console.log('窗口主题设置成功');
+      await appWindow.setTheme(theme === 'light' ? 'light' : 'dark');
     } catch (error) {
       console.error('设置窗口主题失败:', error);
     }
