@@ -1,16 +1,30 @@
+/*
+ * @Author: ZJP 2712104231@qq.com
+ * @Date: 2026-02-17 00:00:00
+ * @LastEditors: ZJP
+ * @LastEditTime: 2026-02-17 00:00:00
+ * @FilePath: c:\Works\oneself\client-script\Terminal-script-manager\src\components\SettingsModal.tsx
+ * @Description: 设置模态框组件，包含数据导入导出和主题切换功能
+ */
+
 import React, { useRef } from 'react';
-import { X, Download, Upload } from 'lucide-react';
+import { X, Download, Upload, Moon, Sun } from 'lucide-react';
+import { Theme } from '../store/theme';
 
 interface SettingsModalProps {
   onClose: () => void;
   onExport: () => void;
   onImport: (file: File) => void;
+  theme: Theme;
+  onThemeChange: (theme: Theme) => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onExport,
   onImport,
+  theme,
+  onThemeChange,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,6 +52,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         <div className="modal-body">
+          <div className="settings-section">
+            <h3 className="settings-section-title">外观</h3>
+
+            <div className="settings-item">
+              <div className="settings-item-info">
+                <div className="settings-item-title">主题模式</div>
+                <div className="settings-item-desc">
+                  切换浅色或深色主题
+                </div>
+              </div>
+              <button
+                className="btn btn-secondary"
+                onClick={() => onThemeChange(theme === 'light' ? 'dark' : 'light')}
+              >
+                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+                <span>{theme === 'light' ? '深色' : '浅色'}</span>
+              </button>
+            </div>
+          </div>
+
           <div className="settings-section">
             <h3 className="settings-section-title">数据管理</h3>
 

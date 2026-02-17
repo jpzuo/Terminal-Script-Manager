@@ -1,7 +1,17 @@
+/*
+ * @Author: ZJP 2712104231@qq.com
+ * @Date: 2026-02-17 00:00:00
+ * @LastEditors: ZJP
+ * @LastEditTime: 2026-02-17 00:00:00
+ * @FilePath: c:\Works\oneself\client-script\Terminal-script-manager\src\App.tsx
+ * @Description: 应用主组件，负责命令管理和主题切换
+ */
+
 import { useState, useEffect } from "react";
 import { Command } from "./types/command";
 import { commandStore } from "./store/commands";
 import { groupStore } from "./store/groups";
+import { themeStore, Theme } from "./store/theme";
 import { Sidebar } from "./components/Sidebar";
 import { CommandList } from "./components/CommandList";
 import { CommandModal } from "./components/CommandModal";
@@ -14,6 +24,7 @@ import {
 } from "./utils/importExport";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css";
 
 function App() {
@@ -24,10 +35,60 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: "", command: "", tags: "" });
+  const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
     loadCommands();
+    loadTheme();
   }, []);
+
+  /**
+   * 加载主题设置
+   */
+  const loadTheme = async () => {
+    try {
+      const savedTheme = await themeStore.getTheme();
+      setTheme(savedTheme);
+      applyTheme(savedTheme);
+    } catch (error) {
+      console.error('加载主题失败:', error);
+    }
+  };
+
+  /**
+   * 应用主题到 DOM 和窗口
+   * @param {Theme} theme - 要应用的主题
+   */
+  const applyTheme = async (theme: Theme) => {
+    // 应用到 HTML 元素
+    document.documentElement.setAttribute('data-theme', theme);
+
+    // 应用到 Tauri 窗口标题栏
+    try {
+      const appWindow = getCurrentWindow();
+      // Tauri v2 的 setTheme 接受 'light' | 'dark' | null
+      const themeValue = theme === 'light' ? 'light' : 'dark';
+      console.log('正在设置窗口主题:', themeValue);
+      await appWindow.setTheme(themeValue);
+      console.log('窗口主题设置成功');
+    } catch (error) {
+      console.error('设置窗口主题失败:', error);
+    }
+  };
+
+  /**
+   * 切换主题
+   * @param {Theme} newTheme - 新主题
+   */
+  const handleThemeChange = async (newTheme: Theme) => {
+    try {
+      await themeStore.setTheme(newTheme);
+      setTheme(newTheme);
+      applyTheme(newTheme);
+    } catch (error) {
+      alert(`切换主题失败: ${error}`);
+    }
+  };
 
   const loadCommands = async () => {
     const data = await commandStore.getAll();
@@ -255,6 +316,8 @@ function App() {
           onClose={() => setShowSettings(false)}
           onExport={handleExport}
           onImport={handleImport}
+          theme={theme}
+          onThemeChange={handleThemeChange}
         />
       )}
     </div>
