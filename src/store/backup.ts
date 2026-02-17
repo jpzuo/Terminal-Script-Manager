@@ -1,6 +1,6 @@
-import { Store } from "@tauri-apps/plugin-store";
+import { LazyStore } from "@tauri-apps/plugin-store";
 
-const backupStore = new Store("commands.backup.json");
+const backupStore = new LazyStore("commands.backup.json");
 const MAX_BACKUPS = 5;
 
 interface Backup {

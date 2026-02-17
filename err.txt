@@ -1,0 +1,125 @@
+thread 'main' (26012) panicked at src\commands\validate.rs:15:49:
+called `Result::unwrap()` on an `Err` value: Syntax(
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+regex parse error:
+    [;&|`$(){}[\]<>]
+    ^
+error: unclosed character class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (26012) panicked at library\core\src\panicking.rs:225:5:
+panic in a function that cannot unwind
+stack backtrace:
+   0:     0x7ff6429160f2 - std::backtrace_rs::backtrace::win64::trace
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1:     0x7ff6429160f2 - std::backtrace_rs::backtrace::trace_unsynchronized
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2:     0x7ff6429160f2 - std::sys::backtrace::_print_fmt
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\sys\backtrace.rs:68
+   3:     0x7ff6429160f2 - std::sys::backtrace::impl$0::print::impl$0::fmt
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\sys\backtrace.rs:38
+   4:     0x7ff642921ae1 - core::fmt::write
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\core\src\fmt\mod.rs:0
+   5:     0x7ff6428f81d4 - std::io::default_write_fmt
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\io\mod.rs:639
+   6:     0x7ff6428f81d4 - std::io::Write::write_fmt<std::sys::stdio::windows::Stderr>
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\io\mod.rs:1994
+   7:     0x7ff64290cf10 - std::sys::backtrace::BacktraceLock::print
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\sys\backtrace.rs:41
+   8:     0x7ff64290cf10 - std::panicking::default_hook::closure$0
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\panicking.rs:292
+   9:     0x7ff64290cd28 - std::panicking::default_hook
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\panicking.rs:319
+  10:     0x7ff64290d242 - std::panicking::panic_with_hook
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\panicking.rs:825
+  11:     0x7ff64290d019 - std::panicking::panic_handler::closure$0
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\panicking.rs:691
+  12:     0x7ff642907a0f - std::sys::backtrace::__rust_end_short_backtrace<std::panicking::panic_handler::closure_env$0,never$>
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\sys\backtrace.rs:176
+  13:     0x7ff6428f53de - std::panicking::panic_handler
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\panicking.rs:689
+  14:     0x7ff64294ec37 - core::panicking::panic_nounwind_fmt
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\core\src\intrinsics\mod.rs:2449
+  15:     0x7ff64294ebb1 - core::panicking::panic_nounwind
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\core\src\panicking.rs:225
+  16:     0x7ff64294ed66 - core::panicking::panic_cannot_unwind
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\core\src\panicking.rs:337
+  17:     0x7ff64273e875 - webview2_com_sys::Microsoft::Web::WebView2::Win32::impl$772::new::Invoke<webview2_com::callback::WebResourceRequestedEventHandler_Impl,-1>
+                               at C:\Users\iszuo\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\webview2-com-sys-0.38.2\src\bindings.rs:38143
+  18:     0x7ffe01bb0430 - _CxxFrameHandler3
+  19:     0x7ffe01ba342d - is_exception_typeof
+  20:     0x7ffe122c1356 - RtlCaptureContext2
+  21:     0x7ff64273e7da - webview2_com_sys::Microsoft::Web::WebView2::Win32::impl$772::new::Invoke<webview2_com::callback::WebResourceRequestedEventHandler_Impl,-1>
+                               at C:\Users\iszuo\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\webview2-com-sys-0.38.2\src\bindings.rs:38154
+  22:     0x7ffdccf4e799 - CreateWebViewEnvironmentWithOptionsInternal
+  23:     0x7ffdccf4e5e9 - CreateWebViewEnvironmentWithOptionsInternal
+  24:     0x7ffdccf696b3 - CreateWebViewEnvironmentWithOptionsInternal
+  25:     0x7ffdccfc331a - DllCanUnloadNow
+  26:     0x7ffdcd21848b - GetHandleVerifier
+  27:     0x7ffdccfae549 - DllCanUnloadNow
+  28:     0x7ffdccfafc97 - DllCanUnloadNow
+  29:     0x7ffdccfafbdb - DllCanUnloadNow
+  30:     0x7ffdccfafad2 - DllCanUnloadNow
+  31:     0x7ffdcd2b4831 - telemetry_client::IDataFieldVisitor::IDataFieldVisitor
+  32:     0x7ffdcd303ec3 - telemetry_client::IDataFieldVisitor::IDataFieldVisitor
+  33:     0x7ffdccfb1703 - DllCanUnloadNow
+  34:     0x7ffdccefeece - CreateWebViewEnvironmentWithOptionsInternal
+  35:     0x7ffdcd096eb9 - DllCanUnloadNow
+  36:     0x7ffdcd092d9c - DllCanUnloadNow
+  37:     0x7ffdcd097e05 - DllCanUnloadNow
+  38:     0x7ffdcd095dd6 - DllCanUnloadNow
+  39:     0x7ffdcd092d9c - DllCanUnloadNow
+  40:     0x7ffdcd099c0b - DllCanUnloadNow
+  41:     0x7ffdcd09de74 - DllCanUnloadNow
+  42:     0x7ffdcd069984 - DllCanUnloadNow
+  43:     0x7ffdccf9c842 - DllCanUnloadNow
+  44:     0x7ffdccf9c66a - DllCanUnloadNow
+  45:     0x7ffdccf9bd92 - DllCanUnloadNow
+  46:     0x7ffdcd0dd7c8 - GetHandleVerifier
+  47:     0x7ffdcd0dd6ff - GetHandleVerifier
+  48:     0x7ffdcd0dd37f - GetHandleVerifier
+  49:     0x7ffe11957846 - CallWindowProcW
+  50:     0x7ffe1195539d - IsWindowUnicode
+  51:     0x7ff64249d968 - windows::Win32::UI::WindowsAndMessaging::DispatchMessageW
+                               at C:\Users\iszuo\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-0.61.3\src\Windows\Win32\UI\WindowsAndMessaging\mod.rs:577
+  52:     0x7ff64249d968 - tao::platform_impl::platform::event_loop::EventLoop<enum2$<tauri_runtime_wry::Message<enum2$<tauri::EventLoopMessage> > > >::run_return<enum2$<tauri_runtime_wry::Message<enum2$<tauri::EventLoopMessage> > >,tauri_runtime_wry::make_event_handler::closure_env
+                               at C:\Users\iszuo\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tao-0.34.5\src\platform_impl\windows\event_loop.rs:268
+  53:     0x7ff64249e01b - tao::platform_impl::platform::event_loop::EventLoop<enum2$<tauri_runtime_wry::Message<enum2$<tauri::EventLoopMessage> > > >::run<enum2$<tauri_runtime_wry::Message<enum2$<tauri::EventLoopMessage> > >,tauri_runtime_wry::make_event_handler::closure_env$0<enum
+                               at C:\Users\iszuo\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tao-0.34.5\src\platform_impl\windows\event_loop.rs:230
+  54:     0x7ff642321921 - tao::event_loop::EventLoop<enum2$<tauri_runtime_wry::Message<enum2$<tauri::EventLoopMessage> > > >::run<enum2$<tauri_runtime_wry::Message<enum2$<tauri::EventLoopMessage> > >,tauri_runtime_wry::make_event_handler::closure_env$0<enum2$<tauri::EventLoopMessag
+                               at C:\Users\iszuo\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tao-0.34.5\src\event_loop.rs:214
+  55:     0x7ff642330ddf - tauri_runtime_wry::impl$45::run<enum2$<tauri::EventLoopMessage>,tauri::app::impl$16::make_run_event_loop_callback::closure_env$0<tauri_runtime_wry::Wry<enum2$<tauri::EventLoopMessage> >,tauri::app::impl$19::run::closure_env$0<tauri_runtime_wry::Wry<enum2$<
+                               at C:\Users\iszuo\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-wry-2.10.0\src\lib.rs:3118
+  56:     0x7ff6422ae993 - tauri::app::App<tauri_runtime_wry::Wry<enum2$<tauri::EventLoopMessage> > >::run<tauri_runtime_wry::Wry<enum2$<tauri::EventLoopMessage> >,tauri::app::impl$19::run::closure_env$0<tauri_runtime_wry::Wry<enum2$<tauri::EventLoopMessage> > > >
+                               at C:\Users\iszuo\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-2.10.2\src\app.rs:1247
+  57:     0x7ff642291cf5 - tauri::app::Builder<tauri_runtime_wry::Wry<enum2$<tauri::EventLoopMessage> > >::run
+                               at C:\Users\iszuo\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-2.10.2\src\app.rs:2299
+  58:     0x7ff642291cf5 - app_lib::run
+                               at C:\Works\oneself\client-script\Terminal-script-manager\src-tauri\src\lib.rs:20
+  59:     0x7ff642291056 - core::ops::function::FnOnce::call_once
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\core\src\ops\function.rs:250
+  60:     0x7ff642291056 - std::sys::backtrace::__rust_begin_short_backtrace<void (*)(),tuple$<> >
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\sys\backtrace.rs:160
+  61:     0x7ff64229106c - std::rt::lang_start::closure$0<tuple$<> >
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\rt.rs:206
+  62:     0x7ff6428f974f - std::rt::lang_start_internal::closure$0
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\rt.rs:175
+  63:     0x7ff6428f974f - std::panicking::catch_unwind::do_call
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\panicking.rs:581
+  64:     0x7ff6428f974f - std::panicking::catch_unwind
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\panicking.rs:544
+  65:     0x7ff6428f974f - std::panic::catch_unwind
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\panic.rs:359
+  66:     0x7ff6428f974f - std::rt::lang_start_internal
+                               at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\rt.rs:171
+  67:     0x7ff64229103c - main
+  68:     0x7ff64292bc30 - invoke_main
+                               at D:\a\_work\1\s\src\vctools\crt\vcstartup\src\startup\exe_common.inl:78
+  69:     0x7ff64292bc30 - __scrt_common_main_seh
+                               at D:\a\_work\1\s\src\vctools\crt\vcstartup\src\startup\exe_common.inl:288
+  70:     0x7ffe1106e8d7 - BaseThreadInitThunk
+  71:     0x7ffe1222c53c - RtlUserThreadStart
+thread caused non-unwinding panic. aborting.
+error: process didn't exit successfully: `target\debug\app.exe` (exit code: 0xc0000409, STATUS_STACK_BUFFER_OVERRUN)

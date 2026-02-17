@@ -1,0 +1,17 @@
+# Windows 平台栈大小配置
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "link-arg=/STACK:8388608"]
+
+# Windows GNU 工具链
+[target.x86_64-pc-windows-gnu]
+rustflags = ["-C", "link-arg=-Wl,--stack,8388608"]
+
+# 优化配置
+[profile.dev]
+# 开发模式也启用部分优化，帮助诊断问题
+opt-level = 1
+
+[profile.release]
+# 发布模式完全优化
+opt-level = 3
+lto = true
