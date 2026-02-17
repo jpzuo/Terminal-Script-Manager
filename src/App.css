@@ -393,14 +393,14 @@
 .sidebar-bottom::-webkit-scrollbar-thumb,
 .main-content::-webkit-scrollbar-thumb,
 .modal-body::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #e5e7eb;
   border-radius: 4px;
 }
 
 .sidebar-bottom::-webkit-scrollbar-thumb:hover,
 .main-content::-webkit-scrollbar-thumb:hover,
 .modal-body::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: #d1d5db;
 }
 
 /* ========== 响应式设计 ========== */

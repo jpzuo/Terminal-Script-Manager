@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, Tag } from 'lucide-react';
+import { Search, Plus, Tag, Settings } from 'lucide-react';
 
 interface SidebarProps {
   search: string;
@@ -8,6 +8,7 @@ interface SidebarProps {
   tags: string[];
   selectedTag: string | null;
   onTagSelect: (tag: string | null) => void;
+  onSettingsClick: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -17,6 +18,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   tags,
   selectedTag,
   onTagSelect,
+  onSettingsClick,
 }) => {
   return (
     <div className="sidebar">
@@ -71,6 +73,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           ))}
         </div>
+
+        {/* 设置按钮 */}
+        <button
+          className="settings-btn"
+          onClick={onSettingsClick}
+          title="设置"
+        >
+          <Settings size={18} />
+          <span>设置</span>
+        </button>
       </div>
     </div>
   );

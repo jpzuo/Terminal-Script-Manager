@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
 import { Command } from "./types/command";
 import { commandStore } from "./store/commands";
+import { groupStore } from "./store/groups";
 import { Sidebar } from "./components/Sidebar";
 import { CommandList } from "./components/CommandList";
 import { CommandModal } from "./components/CommandModal";
+import { SettingsModal } from "./components/SettingsModal";
+import {
+  exportToJSON,
+  validateImportData,
+  processImportData,
+  downloadJSON,
+  readJSONFile,
+} from "./utils/importExport";
 import "./App.css";
 
 function App() {
@@ -11,6 +20,7 @@ function App() {
   const [search, setSearch] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: "", command: "", tags: "" });
 
@@ -129,6 +139,66 @@ function App() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // 导出功能
+  const handleExport = async () => {
+    try {
+      const commands = await commandStore.getAll();
+      const groups = await groupStore.getAll();
+
+      const exportData = exportToJSON(commands, groups);
+      const filename = `commands-export-${Date.now()}.json`;
+
+      downloadJSON(exportData, filename);
+      alert('导出成功！');
+    } catch (error) {
+      alert(`导出失败: ${error}`);
+    }
+  };
+
+  // 导入功能
+  const handleImport = async (file: File) => {
+    try {
+      // 读取文件
+      const data = await readJSONFile(file);
+
+      // 验证数据格式
+      const validation = validateImportData(data);
+      if (!validation.valid) {
+        alert(`导入失败:\n${validation.errors.join('\n')}`);
+        return;
+      }
+
+      // 获取现有数据
+      const existingCommands = await commandStore.getAll();
+      const existingGroups = await groupStore.getAll();
+
+      // 处理导入数据（重新生成 ID）
+      const { commands, groups } = processImportData(
+        data,
+        existingCommands,
+        existingGroups
+      );
+
+      // 导入分组
+      for (const group of groups) {
+        await groupStore.add(group);
+      }
+
+      // 导入命令
+      for (const command of commands) {
+        await commandStore.add(command);
+      }
+
+      // 刷新界面
+      loadCommands();
+
+      alert(`导入成功！\n命令: ${commands.length} 个\n分组: ${groups.length} 个`);
+      setShowSettings(false);
+    } catch (error) {
+      alert(`导入失败: ${error}`);
+    }
+  };
+
   return (
     <div className="app-container">
       <Sidebar
@@ -138,6 +208,7 @@ function App() {
         tags={allTags}
         selectedTag={selectedTag}
         onTagSelect={setSelectedTag}
+        onSettingsClick={() => setShowSettings(true)}
       />
 
       <main className="main-content">
@@ -158,6 +229,14 @@ function App() {
         onFormChange={handleFormChange}
         isEditing={!!editingId}
       />
+
+      {showSettings && (
+        <SettingsModal
+          onClose={() => setShowSettings(false)}
+          onExport={handleExport}
+          onImport={handleImport}
+        />
+      )}
     </div>
   );
 }
