@@ -153,4 +153,11 @@ powershell -Command "Start-Process cmd -Verb RunAs -ArgumentList '/c your-comman
 
 ---
 
-**享受高效的命令管理体验！** 🎉
+**自动发布** 
+# 双击运行或命令行执行
+release.bat
+
+# 或直接指定版本类型
+release.bat patch   # 补丁版本
+release.bat minor   # 次要版本  
+release.bat major   # 主要版
