@@ -35,7 +35,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: "", command: "", tags: "" });
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>('dark');
 
   useEffect(() => {
     loadCommands();

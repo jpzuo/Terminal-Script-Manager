@@ -31,7 +31,7 @@ async function getStore(): Promise<Store> {
 
 /**
  * 获取当前主题
- * @returns {Promise<Theme>} 当前主题，默认为 'light'
+ * @returns {Promise<Theme>} 当前主题，默认为 'dark'
  * @example
  * const theme = await themeStore.getTheme();
  * console.log(theme); // 'light' 或 'dark'
@@ -40,10 +40,10 @@ async function getTheme(): Promise<Theme> {
   try {
     const store = await getStore();
     const theme = await store.get<Theme>(THEME_KEY);
-    return theme || 'light';
+    return theme || 'dark';
   } catch (error) {
     console.error('获取主题失败:', error);
-    return 'light';
+    return 'dark';
   }
 }
 
