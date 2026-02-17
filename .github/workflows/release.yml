@@ -42,17 +42,22 @@ jobs:
       - name: 生成更新日志
         id: changelog
         run: |
-          echo "## 更新内容" > CHANGELOG.txt
-          echo "" >> CHANGELOG.txt
-          git log $(git describe --tags --abbrev=0 HEAD^)..HEAD --pretty=format:"- %s (%h)" >> CHANGELOG.txt
-          echo "" >> CHANGELOG.txt
-          echo "" >> CHANGELOG.txt
-          echo "## 安装说明" >> CHANGELOG.txt
-          echo "" >> CHANGELOG.txt
-          echo "- Windows 用户：下载 .exe 安装包" >> CHANGELOG.txt
-          echo "- 首次安装请下载完整安装包" >> CHANGELOG.txt
-          echo "- 已安装用户可通过应用内\"检查更新\"功能自动更新" >> CHANGELOG.txt
-          cat CHANGELOG.txt
+          CHANGELOG=$(cat <<'EOF'
+          ## 更新内容
+
+          EOF
+          )
+          CHANGELOG="$CHANGELOG"$'\n'
+          CHANGELOG="$CHANGELOG$(git log $(git describe --tags --abbrev=0 HEAD^)..HEAD --pretty=format:"- %s (%h)")"
+          CHANGELOG="$CHANGELOG"$'\n\n'
+          CHANGELOG="$CHANGELOG## 安装说明"$'\n\n'
+          CHANGELOG="$CHANGELOG- Windows 用户：下载 .exe 安装包"$'\n'
+          CHANGELOG="$CHANGELOG- 首次安装请下载完整安装包"$'\n'
+          CHANGELOG="$CHANGELOG- 已安装用户可通过应用内\"检查更新\"功能自动更新"
+          echo "$CHANGELOG"
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: 构建并发布到 GitHub Releases
@@ -63,8 +68,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: '终端脚本管理器 ${{ github.ref_name }}'
-          releaseBody: |
-            $(cat CHANGELOG.txt)
+          releaseBody: ${{ steps.changelog.outputs.CHANGELOG }}
           releaseDraft: false
           prerelease: false
           includeRelease: true
