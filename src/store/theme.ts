@@ -59,6 +59,13 @@ async function setTheme(theme: Theme): Promise<void> {
     const store = await getStore();
     await store.set(THEME_KEY, theme);
     await store.save();
+
+    // 同时保存到 localStorage 作为缓存，用于快速加载避免闪烁
+    try {
+      localStorage.setItem('app-theme-cache', theme);
+    } catch (e) {
+      console.error('保存主题缓存失败:', e);
+    }
   } catch (error) {
     console.error('设置主题失败:', error);
     throw error;
