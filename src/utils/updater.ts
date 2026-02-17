@@ -8,7 +8,7 @@
  */
 
 import { check } from '@tauri-apps/plugin-updater';
-import { relaunch } from '@tauri-apps/api/process';
+import { relaunch } from '@tauri-apps/plugin-process';
 
 /**
  * 检查并安装更新

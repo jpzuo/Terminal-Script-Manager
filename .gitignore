@@ -39,3 +39,5 @@ tmp/
 mcp-browser-automation/
 .npmrc
 .cursor
+
+err.txt

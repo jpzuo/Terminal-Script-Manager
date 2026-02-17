@@ -15,6 +15,7 @@
     "core:path:allow-resolve-directory",
     "dialog:allow-save",
     "fs:allow-write-text-file",
-    "updater:default"
+    "updater:default",
+    "process:allow-restart"
   ]
 }
