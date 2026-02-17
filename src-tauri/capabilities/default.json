@@ -11,6 +11,8 @@
     "store:allow-set",
     "store:allow-save",
     "store:allow-load",
-    "core:path:allow-resolve-directory"
+    "core:path:allow-resolve-directory",
+    "dialog:allow-save",
+    "fs:allow-write-text-file"
   ]
 }

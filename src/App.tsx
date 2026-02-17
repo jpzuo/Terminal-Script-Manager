@@ -10,9 +10,10 @@ import {
   exportToJSON,
   validateImportData,
   processImportData,
-  downloadJSON,
   readJSONFile,
 } from "./utils/importExport";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
 import "./App.css";
 
 function App() {
@@ -146,9 +147,28 @@ function App() {
       const groups = await groupStore.getAll();
 
       const exportData = exportToJSON(commands, groups);
-      const filename = `commands-export-${Date.now()}.json`;
+      const defaultFilename = `commands-export-${Date.now()}.json`;
 
-      downloadJSON(exportData, filename);
+      // 使用 Tauri 的保存对话框让用户选择保存位置
+      const filePath = await save({
+        defaultPath: defaultFilename,
+        filters: [
+          {
+            name: 'JSON',
+            extensions: ['json']
+          }
+        ]
+      });
+
+      // 用户取消了保存
+      if (!filePath) {
+        return;
+      }
+
+      // 写入文件
+      const jsonString = JSON.stringify(exportData, null, 2);
+      await writeTextFile(filePath, jsonString);
+
       alert('导出成功！');
     } catch (error) {
       alert(`导出失败: ${error}`);
