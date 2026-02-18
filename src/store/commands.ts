@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { LazyStore } from "@tauri-apps/plugin-store";
 import { Command } from "../types/command";
+import { TerminalType } from "../types/terminal";
 import { createBackup, restoreFromBackup } from "./backup";
 
 const store = new LazyStore("commands.json");
@@ -71,9 +72,9 @@ export const commandStore = {
     await this.saveWithBackup(filtered);
   },
 
-  async execute(command: string): Promise<{ success: boolean; message?: string }> {
+  async execute(command: string, terminalType: TerminalType = 'cmd'): Promise<{ success: boolean; message?: string }> {
     try {
-      await invoke("execute_command", { command });
+      await invoke("execute_command", { command, terminalType });
       return { success: true };
     } catch (error) {
       return { success: false, message: String(error) };

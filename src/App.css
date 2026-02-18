@@ -145,6 +145,84 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
+/* 侧边栏中区域：终端类型筛选 */
+.sidebar-middle {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-primary);
+  flex-shrink: 0;
+}
+
+.terminal-filter-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.terminal-filter-list {
+  display: flex;
+  gap: 8px;
+}
+
+.terminal-filter-item {
+  flex: 1;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.terminal-filter-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-secondary);
+}
+
+.terminal-filter-item.active {
+  background: var(--accent-light);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  font-weight: 500;
+}
+
+/* 终端类型徽章（内联样式） */
+.terminal-badge-inline {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.terminal-badge-inline.cmd {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.terminal-badge-inline.ps {
+  background: #0078d4;
+  color: white;
+}
+
+/* 深色主题下的 PowerShell 徽章颜色调整 */
+[data-theme='dark'] .terminal-badge-inline.ps {
+  background: #1c97ea;
+}
+
 /* 侧边栏下区域：标签筛选 */
 .sidebar-bottom {
   flex: 1;
@@ -165,14 +243,15 @@
 }
 
 .tags-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   flex: 1;
   overflow-y: auto;
   margin-bottom: 16px;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  grid-auto-rows: min-content;
 }
 
 .tags-list::-webkit-scrollbar {
@@ -180,15 +259,22 @@
 }
 
 .tag-item {
-  padding: 10px 12px;
+  padding: 8px 12px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
   border-radius: 6px;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   font-size: 14px;
   color: var(--text-secondary);
   transition: all 0.2s;
+  height: fit-content;
+  min-height: 38px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 22px;
 }
 
 .tag-item:hover {
@@ -569,4 +655,18 @@
   .command-list {
     grid-template-columns: 1fr;
   }
+}
+
+.terminal-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--accent-primary);
+  color: white;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }

@@ -68,15 +68,21 @@ export const CommandList: React.FC<CommandListProps> = ({
             <code>{cmd.command}</code>
           </div>
 
-          {cmd.tags && cmd.tags.length > 0 && (
+          {(cmd.tags && cmd.tags.length > 0) || cmd.terminalType ? (
             <div className="command-tags">
-              {cmd.tags.map((tag, index) => (
+              <span
+                className="terminal-badge"
+                title={`使用 ${cmd.terminalType === 'powershell' ? 'PowerShell' : 'CMD'} 执行`}
+              >
+                {cmd.terminalType === 'powershell' ? 'PS' : 'CMD'}
+              </span>
+              {cmd.tags && cmd.tags.map((tag, index) => (
                 <span key={index} className="tag">
                   {tag}
                 </span>
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       ))}
     </div>

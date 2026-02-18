@@ -4,7 +4,7 @@ use std::env;
 use crate::commands::validate::get_validator;
 
 #[tauri::command]
-pub fn execute_command(command: String) -> Result<String, String> {
+pub fn execute_command(command: String, terminal_type: Option<String>) -> Result<String, String> {
     // 使用全局单例验证器
     let validator = get_validator();
 
@@ -17,36 +17,12 @@ pub fn execute_command(command: String) -> Result<String, String> {
 
     #[cfg(target_os = "windows")]
     {
-        // 创建临时批处理文件来执行多行命令
-        let temp_dir = env::temp_dir();
-        let timestamp = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis();
-        let batch_file = temp_dir.join(format!("tauri_cmd_{}.bat", timestamp));
-
-        // 写入批处理文件，使用 Windows 换行符
-        // 添加 chcp 65001 支持 UTF-8
-        let batch_content = format!(
-            "@echo off\r\nchcp 65001 >nul\r\n{}\r\necho.\r\necho 命令执行完成\r\npause\r\ndel \"%~f0\"",
-            sanitized.replace("\n", "\r\n")
-        );
-
-        fs::write(&batch_file, batch_content)
-            .map_err(|e| format!("创建批处理文件失败: {}", e))?;
-
-        // 直接执行批处理文件
-        // 使用空标题避免 Windows start 命令的解析问题
-        let batch_path = batch_file.to_string_lossy().to_string();
-        ProcessCommand::new("cmd")
-            .arg("/c")
-            .arg("start")
-            .arg("")  // 空标题，避免中文标题导致的解析问题
-            .arg("cmd")
-            .arg("/k")
-            .arg(&batch_path)
-            .spawn()
-            .map_err(|e| format!("执行失败: {}", e))?;
+        // 获取终端类型，默认为 cmd
+        let term_type = terminal_type.unwrap_or_else(|| "cmd".to_string());
+        match term_type.as_str() {
+            "powershell" => execute_powershell(&sanitized)?,
+            _ => execute_cmd(&sanitized)?,
+        }
     }
 
     #[cfg(target_os = "macos")]
@@ -76,4 +52,85 @@ pub fn execute_command(command: String) -> Result<String, String> {
     }
 
     Ok("命令已执行".to_string())
+}
+
+#[cfg(target_os = "windows")]
+fn execute_cmd(sanitized: &str) -> Result<(), String> {
+    // 创建临时批处理文件来执行多行命令
+    let temp_dir = env::temp_dir();
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis();
+    let batch_file = temp_dir.join(format!("tauri_cmd_{}.bat", timestamp));
+
+    // 写入批处理文件，使用 Windows 换行符
+    // 添加 chcp 65001 支持 UTF-8
+    let batch_content = format!(
+        "@echo off\r\nchcp 65001 >nul\r\n{}\r\necho.\r\necho 命令执行完成\r\npause\r\ndel \"%~f0\"",
+        sanitized.replace("\n", "\r\n")
+    );
+
+    fs::write(&batch_file, batch_content)
+        .map_err(|e| format!("创建批处理文件失败: {}", e))?;
+
+    // 直接执行批处理文件
+    // 使用空标题避免 Windows start 命令的解析问题
+    let batch_path = batch_file.to_string_lossy().to_string();
+    ProcessCommand::new("cmd")
+        .arg("/c")
+        .arg("start")
+        .arg("")  // 空标题，避免中文标题导致的解析问题
+        .arg("cmd")
+        .arg("/k")
+        .arg(&batch_path)
+        .spawn()
+        .map_err(|e| format!("执行失败: {}", e))?;
+
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn execute_powershell(sanitized: &str) -> Result<(), String> {
+    // 创建临时 PowerShell 脚本文件
+    let temp_dir = env::temp_dir();
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis();
+    let script_file = temp_dir.join(format!("tauri_ps_{}.ps1", timestamp));
+
+    // 写入 PowerShell 脚本
+    // 设置输出编码确保中文正确显示
+    let script_content = format!(
+        "# PowerShell Script\n[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\n$OutputEncoding = [System.Text.Encoding]::UTF8\n\n{}",
+        sanitized
+    );
+
+    // 使用 UTF-8 BOM 编码写入文件（PowerShell 需要 BOM 识别 UTF-8）
+    let utf8_bom = vec![0xEF, 0xBB, 0xBF];
+    let mut file_content = utf8_bom;
+    file_content.extend_from_slice(script_content.as_bytes());
+
+    fs::write(&script_file, file_content)
+        .map_err(|e| format!("创建 PowerShell 脚本文件失败: {}", e))?;
+
+    // 启动新的 PowerShell 窗口执行脚本
+    // 使用 -NoExit 参数保持窗口打开
+    let script_path = script_file.to_string_lossy().to_string();
+    ProcessCommand::new("cmd")
+        .arg("/c")
+        .arg("start")
+        .arg("")  // 空标题
+        .arg("powershell")
+        .arg("-NoExit")
+        .arg("-NoProfile")
+        .arg("-ExecutionPolicy")
+        .arg("Bypass")
+        .arg("-File")
+        .arg(&script_path)
+        .spawn()
+        .map_err(|e| format!("执行失败: {}", e))?;
+
+    Ok(())
 }

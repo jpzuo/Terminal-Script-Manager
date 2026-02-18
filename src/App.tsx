@@ -12,6 +12,8 @@ import { Command } from "./types/command";
 import { commandStore } from "./store/commands";
 import { groupStore } from "./store/groups";
 import { themeStore, Theme } from "./store/theme";
+import { terminalStore } from "./store/terminal";
+import { TerminalType } from "./types/terminal";
 import { Sidebar } from "./components/Sidebar";
 import { CommandList } from "./components/CommandList";
 import { CommandModal } from "./components/CommandModal";
@@ -31,15 +33,23 @@ function App() {
   const [commands, setCommands] = useState<Command[]>([]);
   const [search, setSearch] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedTerminalType, setSelectedTerminalType] = useState<TerminalType | 'all'>('all');
   const [showModal, setShowModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", command: "", tags: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    command: "",
+    tags: "",
+    terminalType: 'cmd' as TerminalType
+  });
   const [theme, setTheme] = useState<Theme>('dark');
+  const [terminalType, setTerminalType] = useState<TerminalType>('cmd');
 
   useEffect(() => {
     loadCommands();
     loadTheme();
+    loadTerminalType();
   }, []);
 
   /**
@@ -86,6 +96,31 @@ function App() {
     }
   };
 
+  /**
+   * 加载终端类型设置
+   */
+  const loadTerminalType = async () => {
+    try {
+      const savedType = await terminalStore.getTerminalType();
+      setTerminalType(savedType);
+    } catch (error) {
+      console.error('加载终端类型失败:', error);
+    }
+  };
+
+  /**
+   * 切换终端类型
+   * @param {TerminalType} newType - 新终端类型
+   */
+  const handleTerminalTypeChange = async (newType: TerminalType) => {
+    try {
+      await terminalStore.setTerminalType(newType);
+      setTerminalType(newType);
+    } catch (error) {
+      alert(`切换终端类型失败: ${error}`);
+    }
+  };
+
   const loadCommands = async () => {
     const data = await commandStore.getAll();
     setCommands(data);
@@ -96,8 +131,17 @@ function App() {
     new Set(commands.flatMap((cmd) => cmd.tags))
   ).sort();
 
-  // 筛选命令：先按标签筛选，再按搜索词筛选
+  // 筛选命令：先按终端类型筛选，再按标签筛选，最后按搜索词筛选
   const filteredCommands = commands.filter((cmd) => {
+    // 终端类型筛选
+    if (selectedTerminalType !== 'all') {
+      // 获取命令的实际终端类型（命令自定义 > 全局默认）
+      const actualTerminalType = cmd.terminalType || terminalType;
+      if (actualTerminalType !== selectedTerminalType) {
+        return false;
+      }
+    }
+
     // 标签筛选
     if (selectedTag && !cmd.tags.includes(selectedTag)) {
       return false;
@@ -117,7 +161,12 @@ function App() {
   });
 
   const handleAdd = () => {
-    setFormData({ name: "", command: "", tags: "" });
+    setFormData({
+      name: "",
+      command: "",
+      tags: "",
+      terminalType: terminalType
+    });
     setEditingId(null);
     setShowModal(true);
   };
@@ -127,6 +176,7 @@ function App() {
       name: cmd.name,
       command: cmd.command,
       tags: cmd.tags.join(", "),
+      terminalType: cmd.terminalType || terminalType
     });
     setEditingId(cmd.id);
     setShowModal(true);
@@ -145,9 +195,19 @@ function App() {
 
     try {
       if (editingId) {
-        await commandStore.update(editingId, { ...formData, tags });
+        await commandStore.update(editingId, {
+          name: formData.name,
+          command: formData.command,
+          tags,
+          terminalType: formData.terminalType
+        });
       } else {
-        await commandStore.add({ ...formData, tags });
+        await commandStore.add({
+          name: formData.name,
+          command: formData.command,
+          tags,
+          terminalType: formData.terminalType
+        });
       }
       setShowModal(false);
       loadCommands();
@@ -169,7 +229,8 @@ function App() {
 
   const handleRun = async (cmd: Command) => {
     try {
-      const result = await commandStore.execute(cmd.command);
+      const cmdTerminalType = cmd.terminalType || terminalType;
+      const result = await commandStore.execute(cmd.command, cmdTerminalType);
       if (!result.success) {
         alert(`执行失败: ${result.message}`);
       }
@@ -185,6 +246,7 @@ function App() {
         name: `${cmd.name} (副本)`,
         command: cmd.command,
         tags: cmd.tags,
+        terminalType: cmd.terminalType
       };
       await commandStore.add(newCommand);
       loadCommands();
@@ -286,6 +348,8 @@ function App() {
         selectedTag={selectedTag}
         onTagSelect={setSelectedTag}
         onSettingsClick={() => setShowSettings(true)}
+        selectedTerminalType={selectedTerminalType}
+        onTerminalTypeSelect={setSelectedTerminalType}
       />
 
       <main className="main-content">
@@ -314,6 +378,8 @@ function App() {
           onImport={handleImport}
           theme={theme}
           onThemeChange={handleThemeChange}
+          terminalType={terminalType}
+          onTerminalTypeChange={handleTerminalTypeChange}
         />
       )}
     </div>

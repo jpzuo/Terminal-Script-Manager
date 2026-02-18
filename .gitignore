@@ -40,4 +40,4 @@ mcp-browser-automation/
 .npmrc
 .cursor
 
-err.txt
+# err.txt

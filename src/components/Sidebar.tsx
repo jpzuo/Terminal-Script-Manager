@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search, Plus, Tag, Settings } from 'lucide-react';
+import { Search, Plus, Tag, Settings, Terminal } from 'lucide-react';
+import { TerminalType } from '../types/terminal';
 
 interface SidebarProps {
   search: string;
@@ -9,6 +10,8 @@ interface SidebarProps {
   selectedTag: string | null;
   onTagSelect: (tag: string | null) => void;
   onSettingsClick: () => void;
+  selectedTerminalType: TerminalType | 'all';
+  onTerminalTypeSelect: (type: TerminalType | 'all') => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -19,6 +22,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   selectedTag,
   onTagSelect,
   onSettingsClick,
+  selectedTerminalType,
+  onTerminalTypeSelect,
 }) => {
   return (
     <div className="sidebar">
@@ -42,6 +47,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="添加命令"
           >
             <Plus size={20} />
+          </button>
+        </div>
+      </div>
+
+      {/* 中区域：终端类型筛选 */}
+      <div className="sidebar-middle">
+        <div className="terminal-filter-header">
+          <Terminal size={16} />
+          <span>终端类型</span>
+        </div>
+
+        <div className="terminal-filter-list">
+          <button
+            className={`terminal-filter-item ${selectedTerminalType === 'all' ? 'active' : ''}`}
+            onClick={() => onTerminalTypeSelect('all')}
+            title="显示全部"
+          >
+            全部
+          </button>
+
+          <button
+            className={`terminal-filter-item ${selectedTerminalType === 'cmd' ? 'active' : ''}`}
+            onClick={() => onTerminalTypeSelect('cmd')}
+            title="只显示 CMD 命令"
+          >
+            <span className="terminal-badge-inline cmd">CMD</span>
+          </button>
+
+          <button
+            className={`terminal-filter-item ${selectedTerminalType === 'powershell' ? 'active' : ''}`}
+            onClick={() => onTerminalTypeSelect('powershell')}
+            title="只显示 PowerShell 命令"
+          >
+            <span className="terminal-badge-inline ps">PS</span>
           </button>
         </div>
       </div>

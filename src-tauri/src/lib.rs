@@ -1,6 +1,7 @@
 mod commands;
 
 use commands::execute::execute_command;
+use commands::cleanup::cleanup_temp_files;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -12,6 +13,11 @@ pub fn run() {
     .plugin(tauri_plugin_process::init())
     .invoke_handler(tauri::generate_handler![execute_command])
     .setup(|app| {
+      // 启动时清理旧的临时文件
+      if let Err(e) = cleanup_temp_files() {
+        eprintln!("清理临时文件失败: {}", e);
+      }
+
       if cfg!(debug_assertions) {
         app.handle().plugin(
           tauri_plugin_log::Builder::default()

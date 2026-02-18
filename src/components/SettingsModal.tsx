@@ -8,8 +8,9 @@
  */
 
 import React, { useRef } from 'react';
-import { X, Download, Upload, Moon, Sun, RefreshCw } from 'lucide-react';
+import { X, Download, Upload, Moon, Sun, RefreshCw, Terminal } from 'lucide-react';
 import { Theme } from '../store/theme';
+import { TerminalType } from '../types/terminal';
 import { checkForUpdates } from '../utils/updater';
 
 interface SettingsModalProps {
@@ -18,6 +19,8 @@ interface SettingsModalProps {
   onImport: (file: File) => void;
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
+  terminalType: TerminalType;
+  onTerminalTypeChange: (type: TerminalType) => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -26,6 +29,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onImport,
   theme,
   onThemeChange,
+  terminalType,
+  onTerminalTypeChange,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,6 +86,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
                 <span>{theme === 'light' ? '深色' : '浅色'}</span>
               </button>
+            </div>
+          </div>
+
+          <div className="settings-section">
+            <h3 className="settings-section-title">终端设置</h3>
+
+            <div className="settings-item">
+              <div className="settings-item-info">
+                <div className="settings-item-title">终端类型</div>
+                <div className="settings-item-desc">
+                  选择新建命令时的默认终端类型（每个命令可单独设置）
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  className={`btn ${terminalType === 'cmd' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => onTerminalTypeChange('cmd')}
+                >
+                  <Terminal size={18} />
+                  <span>CMD</span>
+                </button>
+                <button
+                  className={`btn ${terminalType === 'powershell' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => onTerminalTypeChange('powershell')}
+                >
+                  <Terminal size={18} />
+                  <span>PowerShell</span>
+                </button>
+              </div>
             </div>
           </div>
 
