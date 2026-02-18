@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整的 git 历史，包括所有 commits 和 tags
 
       - name: 设置 Node.js
         uses: actions/setup-node@v4
@@ -49,11 +51,6 @@ jobs:
           )
           CHANGELOG="$CHANGELOG"$'\n'
           CHANGELOG="$CHANGELOG$(git log $(git describe --tags --abbrev=0 HEAD^)..HEAD --pretty=format:"- %s (%h)")"
-          CHANGELOG="$CHANGELOG"$'\n\n'
-          CHANGELOG="$CHANGELOG## 安装说明"$'\n\n'
-          CHANGELOG="$CHANGELOG- Windows 用户：下载 .exe 安装包"$'\n'
-          CHANGELOG="$CHANGELOG- 首次安装请下载完整安装包"$'\n'
-          CHANGELOG="$CHANGELOG- 已安装用户可通过应用内\"检查更新\"功能自动更新"
           echo "$CHANGELOG"
           echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
