@@ -94,10 +94,39 @@ export function processImportData(
   existingCommands: Command[],
   existingGroups: Group[]
 ): { commands: Command[]; groups: Group[] } {
+  const normalizeTags = (tags: unknown): string[] => {
+    if (!Array.isArray(tags)) {
+      return [];
+    }
+
+    const normalized = tags
+      .filter((tag): tag is string => typeof tag === 'string')
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+
+    return Array.from(new Set(normalized)).sort();
+  };
+
+  const normalizeTerminalType = (terminalType: unknown): string => {
+    if (terminalType === 'cmd' || terminalType === 'powershell') {
+      return terminalType;
+    }
+    return 'default';
+  };
+
+  const buildCommandKey = (cmd: Command): string => {
+    const name = cmd.name.trim();
+    const command = cmd.command.trim();
+    const terminal = normalizeTerminalType(cmd.terminalType);
+    const tagsKey = normalizeTags(cmd.tags).join('|');
+    return `${name}::${command}::${terminal}::${tagsKey}`;
+  };
+
   // 创建 ID 映射表（旧 ID -> 新 ID）
   const groupIdMap = new Map<string, string>();
   const existingGroupIds = new Set(existingGroups.map(g => g.id));
   const existingCommandIds = new Set(existingCommands.map(c => c.id));
+  const existingCommandKeys = new Set(existingCommands.map(buildCommandKey));
 
   // 处理分组：重新生成 ID
   const processedGroups: Group[] = data.groups.map(group => {
@@ -118,7 +147,15 @@ export function processImportData(
   });
 
   // 处理命令：重新生成 ID，更新 groupId 引用
-  const processedCommands: Command[] = data.commands.map(cmd => {
+  const processedCommands: Command[] = [];
+
+  for (const cmd of data.commands) {
+    const commandKey = buildCommandKey(cmd);
+    if (existingCommandKeys.has(commandKey)) {
+      continue;
+    }
+
+    existingCommandKeys.add(commandKey);
     let newId = cmd.id;
 
     // 如果 ID 冲突，生成新 ID
@@ -134,12 +171,12 @@ export function processImportData(
       newGroupId = groupIdMap.get(cmd.groupId)!;
     }
 
-    return {
+    processedCommands.push({
       ...cmd,
       id: newId,
       groupId: newGroupId,
-    };
-  });
+    });
+  }
 
   return {
     commands: processedCommands,

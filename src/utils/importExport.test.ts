@@ -101,4 +101,40 @@ describe('importExport utilities', () => {
     expect(processedCommand.id).not.toBe('c1');
     expect(processedCommand.groupId).toBe(processedGroup.id);
   });
+
+  it('skips commands that already exist with identical fields', () => {
+    const existingCommands: Command[] = [
+      {
+        id: 'cmd-1',
+        name: 'Build',
+        command: 'npm run build',
+        tags: ['frontend', 'release'],
+        groupId: null,
+        terminalType: 'cmd',
+        createdAt: 1,
+      },
+    ];
+
+    const existingGroups: Group[] = [];
+
+    const data: ExportData = {
+      version: '1.0.6',
+      exportedAt: 1700000000000,
+      commands: [
+        {
+          id: 'cmd-2',
+          name: 'Build',
+          command: 'npm run build',
+          tags: ['release', 'frontend'],
+          groupId: null,
+          terminalType: 'cmd',
+          createdAt: 2,
+        },
+      ],
+      groups: [],
+    };
+
+    const result = processImportData(data, existingCommands, existingGroups);
+    expect(result.commands).toHaveLength(0);
+  });
 });
