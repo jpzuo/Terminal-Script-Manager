@@ -1,10 +1,1 @@
-﻿     Running DevCommand (`cargo  run --no-default-features --color always --`)
-        Info Watching C:\Works\oneself\client-script\Terminal-script-manager\src-tauri for changes...
-(!) Failed to run dependency scan. Skipping dependency pre-bundling. Error: The following dependencies are imported but could not be resolved:
-
-  react-window (imported by C:/Works/oneself/client-script/Terminal-script-manager/src/components/CommandList.tsx)
-
-Are they installed?
-    at file:///C:/Works/oneself/client-script/Terminal-script-manager/node_modules/.pnpm/vite@7.3.1_jiti@1.21.7/node_modules/vite/dist/node/chunks/config.js:31903:33
-    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at async file:///C:/Works/oneself/client-script/Terminal-script-manager/node_modules/.pnpm/vite@7.3.1_jiti@1.21.7/node_modules/vite/dist/node/chunks/config.js:34111:15
+﻿Uncaught (in promise) window.destroy not allowed. Permissions associated with this command: core:window:allow-destroy

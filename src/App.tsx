@@ -7,12 +7,13 @@
  * @Description: 应用主组件，负责命令管理和主题切换
  */
 
-import { useState, useEffect, useMemo, useDeferredValue } from "react";
+import { useState, useEffect, useMemo, useDeferredValue, useRef } from "react";
 import { Command } from "./types/command";
 import { commandStore } from "./store/commands";
 import { groupStore } from "./store/groups";
 import { themeStore, Theme } from "./store/theme";
 import { terminalStore } from "./store/terminal";
+import { syncStore } from "./store/sync";
 import { TerminalType } from "./types/terminal";
 import { Sidebar } from "./components/Sidebar";
 import { CommandList } from "./components/CommandList";
@@ -24,9 +25,16 @@ import {
   processImportData,
   readJSONFile,
 } from "./utils/importExport";
-import { save } from "@tauri-apps/plugin-dialog";
+import { confirm as tauriConfirm, save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import {
+  createGistForSync,
+  pushToGist,
+  pullFromGist,
+  checkAutoUpload,
+  uploadSnapshot,
+} from "./utils/sync";
 import "./App.css";
 
 function App() {
@@ -45,12 +53,65 @@ function App() {
   });
   const [theme, setTheme] = useState<Theme>('dark');
   const [terminalType, setTerminalType] = useState<TerminalType>('cmd');
+  const [syncToken, setSyncToken] = useState('');
+  const [syncGistId, setSyncGistId] = useState('');
+  const [syncStatus, setSyncStatus] = useState('');
+  const [syncBusy, setSyncBusy] = useState(false);
   const deferredSearch = useDeferredValue(search);
+  const isClosingRef = useRef(false);
 
   useEffect(() => {
     loadCommands();
     loadTheme();
     loadTerminalType();
+    loadSyncConfig();
+  }, []);
+
+  useEffect(() => {
+    const appWindow = getCurrentWindow();
+    let unlisten: (() => void) | null = null;
+
+    appWindow.onCloseRequested(async (event) => {
+      if (isClosingRef.current) {
+        return;
+      }
+
+      try {
+        const check = await checkAutoUpload();
+        if (check.status === 'ready' && check.snapshot && check.token && check.gistId) {
+          const shouldWait = await tauriConfirm('检测到本地变更，是否等待上传完成后再退出？', {
+            title: '同步提示',
+            kind: 'warning',
+          });
+          if (shouldWait) {
+            try {
+              event.preventDefault();
+              await uploadSnapshot(check.token, check.gistId, check.snapshot);
+            } catch (error) {
+              alert(`自动上传失败: ${error}`);
+            }
+
+            isClosingRef.current = true;
+            await appWindow.close();
+            return;
+          } else {
+            uploadSnapshot(check.token, check.gistId, check.snapshot).catch((error) => {
+              console.error('关闭时自动上传失败:', error);
+            });
+          }
+        }
+      } catch (error) {
+        console.error('关闭时同步检查失败:', error);
+      }
+    }).then((unlistenFn) => {
+      unlisten = unlistenFn;
+    });
+
+    return () => {
+      if (unlisten) {
+        unlisten();
+      }
+    };
   }, []);
 
   /**
@@ -109,6 +170,19 @@ function App() {
     }
   };
 
+  const loadSyncConfig = async () => {
+    try {
+      const [token, gistId] = await Promise.all([
+        syncStore.getToken(),
+        syncStore.getGistId(),
+      ]);
+      setSyncToken(token);
+      setSyncGistId(gistId);
+    } catch (error) {
+      console.error('加载同步配置失败:', error);
+    }
+  };
+
   /**
    * 切换终端类型
    * @param {TerminalType} newType - 新终端类型
@@ -119,6 +193,101 @@ function App() {
       setTerminalType(newType);
     } catch (error) {
       alert(`切换终端类型失败: ${error}`);
+    }
+  };
+
+  const handleSyncTokenChange = async (value: string) => {
+    setSyncToken(value);
+    try {
+      await syncStore.setToken(value.trim());
+    } catch (error) {
+      alert(`保存 Token 失败: ${error}`);
+    }
+  };
+
+  const handleSyncGistIdChange = async (value: string) => {
+    setSyncGistId(value);
+    try {
+      await syncStore.setGistId(value.trim());
+    } catch (error) {
+      alert(`保存 Gist ID 失败: ${error}`);
+    }
+  };
+
+  const ensureSyncToken = (): string | null => {
+    const token = syncToken.trim();
+    if (!token) {
+      alert('请先填写 GitHub Token');
+      return null;
+    }
+    return token;
+  };
+
+  const ensureGistId = (): string | null => {
+    const gistId = syncGistId.trim();
+    if (!gistId) {
+      alert('请先填写 Gist ID');
+      return null;
+    }
+    return gistId;
+  };
+
+  const handleCreateGist = async () => {
+    const token = ensureSyncToken();
+    if (!token) {
+      return;
+    }
+
+    setSyncBusy(true);
+    setSyncStatus('');
+    try {
+      const result = await createGistForSync(token);
+      await syncStore.setGistId(result.gistId);
+      setSyncGistId(result.gistId);
+      setSyncStatus('Gist 创建成功');
+    } catch (error) {
+      alert(`创建 Gist 失败: ${error}`);
+    } finally {
+      setSyncBusy(false);
+    }
+  };
+
+  const handleSyncPush = async () => {
+    const token = ensureSyncToken();
+    const gistId = ensureGistId();
+    if (!token || !gistId) {
+      return;
+    }
+
+    setSyncBusy(true);
+    setSyncStatus('');
+    try {
+      await pushToGist(token, gistId);
+      setSyncStatus('上传成功');
+    } catch (error) {
+      alert(`上传失败: ${error}`);
+    } finally {
+      setSyncBusy(false);
+    }
+  };
+
+  const handleSyncPull = async () => {
+    const token = ensureSyncToken();
+    const gistId = ensureGistId();
+    if (!token || !gistId) {
+      return;
+    }
+
+    setSyncBusy(true);
+    setSyncStatus('');
+    try {
+      const result = await pullFromGist(token, gistId);
+      await loadCommands();
+      setSyncStatus(`拉取成功：命令 ${result.commands} 个，分组 ${result.groups} 个`);
+    } catch (error) {
+      alert(`拉取失败: ${error}`);
+    } finally {
+      setSyncBusy(false);
     }
   };
 
@@ -384,6 +553,15 @@ function App() {
           onThemeChange={handleThemeChange}
           terminalType={terminalType}
           onTerminalTypeChange={handleTerminalTypeChange}
+          syncToken={syncToken}
+          syncGistId={syncGistId}
+          syncStatus={syncStatus}
+          syncBusy={syncBusy}
+          onSyncTokenChange={handleSyncTokenChange}
+          onSyncGistIdChange={handleSyncGistIdChange}
+          onSyncCreateGist={handleCreateGist}
+          onSyncPush={handleSyncPush}
+          onSyncPull={handleSyncPull}
         />
       )}
     </div>

@@ -21,6 +21,15 @@ interface SettingsModalProps {
   onThemeChange: (theme: Theme) => void;
   terminalType: TerminalType;
   onTerminalTypeChange: (type: TerminalType) => void;
+  syncToken: string;
+  syncGistId: string;
+  syncStatus: string;
+  syncBusy: boolean;
+  onSyncTokenChange: (value: string) => void;
+  onSyncGistIdChange: (value: string) => void;
+  onSyncCreateGist: () => void;
+  onSyncPush: () => void;
+  onSyncPull: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -31,6 +40,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onThemeChange,
   terminalType,
   onTerminalTypeChange,
+  syncToken,
+  syncGistId,
+  syncStatus,
+  syncBusy,
+  onSyncTokenChange,
+  onSyncGistIdChange,
+  onSyncCreateGist,
+  onSyncPush,
+  onSyncPull,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -153,6 +171,84 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onChange={handleFileChange}
               />
             </div>
+          </div>
+
+          <div className="settings-section">
+            <h3 className="settings-section-title">同步</h3>
+
+            <div className="settings-item">
+              <div className="settings-item-info">
+                <div className="settings-item-title">GitHub Token</div>
+                <div className="settings-item-desc">
+                  需要开启 gist 权限
+                </div>
+              </div>
+              <div className="settings-item-actions">
+                <input
+                  className="settings-input"
+                  type="password"
+                  placeholder="ghp_..."
+                  value={syncToken}
+                  onChange={(e) => onSyncTokenChange(e.target.value)}
+                  disabled={syncBusy}
+                />
+              </div>
+            </div>
+
+            <div className="settings-item">
+              <div className="settings-item-info">
+                <div className="settings-item-title">Gist ID</div>
+                <div className="settings-item-desc">
+                  填入已有 Gist 的 ID 或点击创建
+                </div>
+              </div>
+              <div className="settings-item-actions">
+                <input
+                  className="settings-input"
+                  type="text"
+                  placeholder="abcdef123456..."
+                  value={syncGistId}
+                  onChange={(e) => onSyncGistIdChange(e.target.value)}
+                  disabled={syncBusy}
+                />
+              </div>
+            </div>
+
+            <div className="settings-item">
+              <div className="settings-item-info">
+                <div className="settings-item-title">同步操作</div>
+                <div className="settings-item-desc">
+                  手动上传或拉取同步数据
+                </div>
+              </div>
+              <div className="settings-item-actions">
+                <button
+                  className="btn btn-secondary"
+                  onClick={onSyncCreateGist}
+                  disabled={syncBusy}
+                >
+                  创建 Gist
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={onSyncPush}
+                  disabled={syncBusy}
+                >
+                  手动上传
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={onSyncPull}
+                  disabled={syncBusy}
+                >
+                  手动拉取
+                </button>
+              </div>
+            </div>
+
+            {syncStatus ? (
+              <div className="settings-status">{syncStatus}</div>
+            ) : null}
           </div>
 
           <div className="settings-section">
