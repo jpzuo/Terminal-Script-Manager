@@ -297,11 +297,33 @@
   padding: 24px;
 }
 
+.main-content.virtualized {
+  overflow: hidden;
+}
+
 /* 命令列表 */
 .command-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
+}
+
+.command-list-virtualized {
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+}
+
+.command-list-virtualized .command-card {
+  height: 100%;
+  overflow: hidden;
+}
+
+.command-list-virtualized .command-content code {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* 命令卡片 */

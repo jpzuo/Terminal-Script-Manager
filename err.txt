@@ -1,12 +1,10 @@
-﻿# : 无法将“﻿#”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括路径，请确保路径正确，然
-后再试一次。
-所在位置 C:\Users\iszuo\AppData\Local\Temp\tauri_ps_1771390918657.ps1:1 字符: 1
-+ ﻿# PowerShell Script
-+ ~~
-    + CategoryInfo          : ObjectNotFound: (﻿#:String) [], CommandNotFoundException
-    + FullyQualifiedErrorId : CommandNotFoundException
+﻿     Running DevCommand (`cargo  run --no-default-features --color always --`)
+        Info Watching C:\Works\oneself\client-script\Terminal-script-manager\src-tauri for changes...
+(!) Failed to run dependency scan. Skipping dependency pre-bundling. Error: The following dependencies are imported but could not be resolved:
 
-v24.11.1
+  react-window (imported by C:/Works/oneself/client-script/Terminal-script-manager/src/components/CommandList.tsx)
 
-命令执行完成
-按 Enter 键关闭窗口:
+Are they installed?
+    at file:///C:/Works/oneself/client-script/Terminal-script-manager/node_modules/.pnpm/vite@7.3.1_jiti@1.21.7/node_modules/vite/dist/node/chunks/config.js:31903:33
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async file:///C:/Works/oneself/client-script/Terminal-script-manager/node_modules/.pnpm/vite@7.3.1_jiti@1.21.7/node_modules/vite/dist/node/chunks/config.js:34111:15

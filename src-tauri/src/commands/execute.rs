@@ -3,7 +3,7 @@ use std::fs;
 use std::env;
 use crate::commands::validate::get_validator;
 
-#[tauri::command]
+#[tauri::command(rename_all = "camelCase")]
 pub fn execute_command(command: String, terminal_type: Option<String>) -> Result<String, String> {
     // 使用全局单例验证器
     let validator = get_validator();

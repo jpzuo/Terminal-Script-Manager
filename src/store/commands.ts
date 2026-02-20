@@ -11,7 +11,7 @@ export const commandStore = {
   async saveWithBackup(commands: Command[]): Promise<void> {
     try {
       const currentData = await this.getAll();
-      await createBackup(currentData);
+      await createBackup(currentData, "commands");
 
       await store.set(STORE_KEY, commands);
       await store.save();
@@ -22,9 +22,9 @@ export const commandStore = {
       }
     } catch (error) {
       console.error("保存失败，正在回滚:", error);
-      const backupData = await restoreFromBackup();
-      if (backupData) {
-        await store.set(STORE_KEY, backupData);
+      const backupData = await restoreFromBackup("commands");
+      if (Array.isArray(backupData)) {
+        await store.set(STORE_KEY, backupData as Command[]);
         await store.save();
       }
       throw error;
@@ -51,6 +51,20 @@ export const commandStore = {
     commands.push(newCommand);
     await this.saveWithBackup(commands);
     return newCommand;
+  },
+
+  async bulkAdd(commands: Command[]): Promise<void> {
+    if (commands.length === 0) {
+      return;
+    }
+
+    const existing = await this.getAll();
+    const merged = [...existing, ...commands];
+    await this.saveWithBackup(merged);
+  },
+
+  async replaceAll(commands: Command[]): Promise<void> {
+    await this.saveWithBackup(commands);
   },
 
   async update(id: string, updates: Partial<Command>): Promise<void> {

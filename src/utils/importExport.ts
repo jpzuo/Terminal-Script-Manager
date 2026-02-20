@@ -2,7 +2,7 @@ import { Command } from '../types/command';
 import { Group } from '../types/group';
 import { ExportData, ValidationResult } from '../types/common';
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.6';
 
 /**
  * 导出命令和分组数据为 JSON
@@ -48,6 +48,9 @@ export function validateImportData(data: any): ValidationResult {
       if (!Array.isArray(cmd.tags)) {
         errors.push(`命令 ${index}: tags 必须是数组`);
       }
+      if (cmd.terminalType && !['cmd', 'powershell'].includes(cmd.terminalType)) {
+        errors.push(`命令 ${index}: terminalType 无效`);
+      }
       if (typeof cmd.createdAt !== 'number') {
         errors.push(`命令 ${index}: 缺少或无效的 createdAt`);
       }
@@ -64,6 +67,12 @@ export function validateImportData(data: any): ValidationResult {
       }
       if (!group.name || typeof group.name !== 'string') {
         errors.push(`分组 ${index}: 缺少或无效的 name`);
+      }
+      if (!group.color || typeof group.color !== 'string') {
+        errors.push(`分组 ${index}: 缺少或无效的 color`);
+      }
+      if (typeof group.order !== 'number') {
+        errors.push(`分组 ${index}: 缺少或无效的 order`);
       }
       if (typeof group.createdAt !== 'number') {
         errors.push(`分组 ${index}: 缺少或无效的 createdAt`);

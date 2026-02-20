@@ -2,7 +2,7 @@
 
 一个轻量级的 Windows 终端命令管理器，帮助你高效管理和执行常用的终端命令。
 
-![版本](https://img.shields.io/badge/version-1.0.0-blue)
+![版本](https://img.shields.io/badge/version-1.0.6-blue)
 ![平台](https://img.shields.io/badge/platform-Windows-blue)
 ![内存占用](https://img.shields.io/badge/内存占用-<5MB-green)
 

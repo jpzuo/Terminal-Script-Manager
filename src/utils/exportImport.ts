@@ -7,7 +7,7 @@ export async function exportData(
   groups: Group[]
 ): Promise<string> {
   const data: ExportData = {
-    version: "1.0.0",
+    version: "1.0.6",
     exportedAt: Date.now(),
     commands,
     groups,
@@ -33,8 +33,7 @@ export async function downloadExport(
 }
 
 export async function importData(
-  jsonString: string,
-  mode: "merge" | "replace"
+  jsonString: string
 ): Promise<ImportResult> {
   const result: ImportResult = {
     success: false,

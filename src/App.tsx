@@ -7,7 +7,7 @@
  * @Description: 应用主组件，负责命令管理和主题切换
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useDeferredValue } from "react";
 import { Command } from "./types/command";
 import { commandStore } from "./store/commands";
 import { groupStore } from "./store/groups";
@@ -45,6 +45,7 @@ function App() {
   });
   const [theme, setTheme] = useState<Theme>('dark');
   const [terminalType, setTerminalType] = useState<TerminalType>('cmd');
+  const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
     loadCommands();
@@ -127,38 +128,43 @@ function App() {
   };
 
   // 获取所有唯一标签
-  const allTags = Array.from(
-    new Set(commands.flatMap((cmd) => cmd.tags))
-  ).sort();
+  const allTags = useMemo(() => {
+    return Array.from(new Set(commands.flatMap((cmd) => cmd.tags))).sort();
+  }, [commands]);
 
   // 筛选命令：先按终端类型筛选，再按标签筛选，最后按搜索词筛选
-  const filteredCommands = commands.filter((cmd) => {
-    // 终端类型筛选
-    if (selectedTerminalType !== 'all') {
-      // 获取命令的实际终端类型（命令自定义 > 全局默认）
-      const actualTerminalType = cmd.terminalType || terminalType;
-      if (actualTerminalType !== selectedTerminalType) {
+  const filteredCommands = useMemo(() => {
+    const searchLower = deferredSearch.trim().toLowerCase();
+
+    return commands.filter((cmd) => {
+      // 终端类型筛选
+      if (selectedTerminalType !== 'all') {
+        // 获取命令的实际终端类型（命令自定义 > 全局默认）
+        const actualTerminalType = cmd.terminalType || terminalType;
+        if (actualTerminalType !== selectedTerminalType) {
+          return false;
+        }
+      }
+
+      // 标签筛选
+      if (selectedTag && !cmd.tags.includes(selectedTag)) {
         return false;
       }
-    }
 
-    // 标签筛选
-    if (selectedTag && !cmd.tags.includes(selectedTag)) {
-      return false;
-    }
+      // 搜索筛选
+      if (searchLower) {
+        return (
+          cmd.name.toLowerCase().includes(searchLower) ||
+          cmd.command.toLowerCase().includes(searchLower) ||
+          cmd.tags.some((tag) => tag.toLowerCase().includes(searchLower))
+        );
+      }
 
-    // 搜索筛选
-    if (search) {
-      const searchLower = search.toLowerCase();
-      return (
-        cmd.name.toLowerCase().includes(searchLower) ||
-        cmd.command.toLowerCase().includes(searchLower) ||
-        cmd.tags.some((tag) => tag.toLowerCase().includes(searchLower))
-      );
-    }
+      return true;
+    });
+  }, [commands, deferredSearch, selectedTag, selectedTerminalType, terminalType]);
 
-    return true;
-  });
+  const shouldVirtualize = filteredCommands.length >= 300;
 
   const handleAdd = () => {
     setFormData({
@@ -206,6 +212,7 @@ function App() {
           name: formData.name,
           command: formData.command,
           tags,
+          groupId: null,
           terminalType: formData.terminalType
         });
       }
@@ -246,6 +253,7 @@ function App() {
         name: `${cmd.name} (副本)`,
         command: cmd.command,
         tags: cmd.tags,
+        groupId: cmd.groupId ?? null,
         terminalType: cmd.terminalType
       };
       await commandStore.add(newCommand);
@@ -318,15 +326,9 @@ function App() {
         existingGroups
       );
 
-      // 导入分组
-      for (const group of groups) {
-        await groupStore.add(group);
-      }
-
-      // 导入命令
-      for (const command of commands) {
-        await commandStore.add(command);
-      }
+      // 导入分组与命令（批量写入）
+      await groupStore.bulkAdd(groups);
+      await commandStore.bulkAdd(commands);
 
       // 刷新界面
       loadCommands();
@@ -352,13 +354,15 @@ function App() {
         onTerminalTypeSelect={setSelectedTerminalType}
       />
 
-      <main className="main-content">
+      <main className={`main-content${shouldVirtualize ? ' virtualized' : ''}`}>
         <CommandList
           commands={filteredCommands}
           onRun={handleRun}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onCopy={handleCopy}
+          defaultTerminalType={terminalType}
+          virtualized={shouldVirtualize}
         />
       </main>
 

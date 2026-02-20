@@ -73,3 +73,44 @@ impl CommandValidator {
 pub fn get_validator() -> &'static CommandValidator {
     &VALIDATOR
 }
+
+#[cfg(test)]
+mod tests {
+    use super::CommandValidator;
+
+    #[test]
+    fn rejects_empty_and_overlong_commands() {
+        let validator = CommandValidator::new();
+        assert!(validator.validate("").is_err());
+        assert!(validator.validate("   ").is_err());
+        assert!(validator.validate(&"a".repeat(1001)).is_err());
+    }
+
+    #[test]
+    fn rejects_dangerous_patterns() {
+        let validator = CommandValidator::new();
+        assert!(validator.validate("echo `whoami`").is_err());
+        assert!(validator.validate("echo $(whoami)").is_err());
+        assert!(validator.validate("rm -rf /").is_err());
+        assert!(validator.validate("sudo ls").is_err());
+        assert!(validator.validate("eval \"echo hi\"").is_err());
+        assert!(validator.validate("echo > out.txt").is_err());
+    }
+
+    #[test]
+    fn sanitize_escapes_quotes_and_normalizes_newlines() {
+        let validator = CommandValidator::new();
+        let input = "echo \"hello\"\r\necho 'world'";
+        let sanitized = validator.sanitize(input);
+        assert!(sanitized.contains("\\\"hello\\\""));
+        assert!(sanitized.contains("\\'world\\'"));
+        assert!(!sanitized.contains('\r'));
+    }
+
+    #[test]
+    fn validate_sanitized_length_limits() {
+        let validator = CommandValidator::new();
+        let long_command = "a".repeat(1501);
+        assert!(validator.validate_sanitized(&long_command).is_err());
+    }
+}

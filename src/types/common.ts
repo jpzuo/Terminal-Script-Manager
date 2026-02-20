@@ -1,3 +1,6 @@
+import { Command } from './command';
+import { Group } from './group';
+
 export interface ValidationResult {
   valid: boolean;
   errors: string[];
@@ -6,8 +9,8 @@ export interface ValidationResult {
 export interface ExportData {
   version: string;
   exportedAt: number;
-  commands: any[];
-  groups: any[];
+  commands: Command[];
+  groups: Group[];
 }
 
 export interface ImportResult {
