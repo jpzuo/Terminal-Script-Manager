@@ -1,15 +1,36 @@
+/**
+ * @Author: ZJP 2712104231@qq.com
+ * @Date: 2026-02-25 11:04:50
+ * @LastEditors: 左金谱
+ * @LastEditTime: 2026-02-25 11:04:50
+ * @FilePath: c:\Works\oneself\client-script\Terminal-script-manager\src-tauri\src\commands\execute.rs
+ * @Description: 命令执行入口，根据终端类型生成脚本并启动终端
+ */
 use std::process::Command as ProcessCommand;
 use std::fs;
 use std::env;
 use crate::commands::validate::get_validator;
 
 #[tauri::command(rename_all = "camelCase")]
+/**
+ * 执行命令并根据终端类型启动终端
+ * @param {String} command - 命令内容
+ * @param {Option<String>} terminal_type - 终端类型
+ * @returns {Result<String, String>} 执行结果
+ * @example
+ * // 执行命令
+ * execute_command("echo hi".to_string(), Some("cmd".to_string()));
+ */
 pub fn execute_command(command: String, terminal_type: Option<String>) -> Result<String, String> {
     // 使用全局单例验证器
     let validator = get_validator();
 
     validator.validate(&command)?;
 
+    // 重要：根据平台选择合适的命令预处理策略
+    #[cfg(target_os = "windows")]
+    let sanitized = validator.sanitize_for_windows_script(&command);
+    #[cfg(not(target_os = "windows"))]
     let sanitized = validator.sanitize(&command);
 
     // 验证 sanitize 后的长度
@@ -55,6 +76,14 @@ pub fn execute_command(command: String, terminal_type: Option<String>) -> Result
 }
 
 #[cfg(target_os = "windows")]
+/**
+ * 使用 CMD 执行命令
+ * @param {&str} sanitized - 清理后的命令
+ * @returns {Result<(), String>} 执行结果
+ * @example
+ * // 执行 CMD 命令
+ * execute_cmd("echo hi");
+ */
 fn execute_cmd(sanitized: &str) -> Result<(), String> {
     // 创建临时批处理文件来执行多行命令
     let temp_dir = env::temp_dir();
@@ -91,6 +120,14 @@ fn execute_cmd(sanitized: &str) -> Result<(), String> {
 }
 
 #[cfg(target_os = "windows")]
+/**
+ * 使用 PowerShell 执行命令
+ * @param {&str} sanitized - 清理后的命令
+ * @returns {Result<(), String>} 执行结果
+ * @example
+ * // 执行 PowerShell 命令
+ * execute_powershell("Get-Process");
+ */
 fn execute_powershell(sanitized: &str) -> Result<(), String> {
     // 创建临时 PowerShell 脚本文件
     let temp_dir = env::temp_dir();
